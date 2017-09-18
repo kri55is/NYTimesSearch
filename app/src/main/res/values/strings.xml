@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">NYTimesSearch</string>
+    <string name="action_settings">Settings</string>
+    <string name="etQueryHint">Enter search query</string>
+    <string name="btnSearch">Search</string>
+</resources>
