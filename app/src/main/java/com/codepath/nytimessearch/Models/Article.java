@@ -41,7 +41,7 @@ public class Article implements Serializable{
 
             if(multimediaJSONArray.length() >0){
                 JSONObject multimediaJSONObject = multimediaJSONArray.getJSONObject(0);
-                this.thumbNail = "https://www.nytimes.com/" + multimediaJSONObject.get("url");
+                this.thumbNail = "http://www.nytimes.com/" + multimediaJSONObject.get("url");
 
             }
             else
