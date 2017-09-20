@@ -4,4 +4,12 @@
     <string name="etQueryHint">Enter search query</string>
     <string name="btnSearch">Search</string>
     <string name="title_activity_article">ArticleActivity</string>
+    <string name="filters">Filters</string>
+    <string name="starting_date">Starting date</string>
+    <string name="sort_order">Sort order</string>
+    <string name="news_desk_values">News Desk Values</string>
+    <string name="art">Art</string>
+    <string name="fashion_style"><![CDATA[Fashion & Style]]></string>
+    <string name="sport">Sports</string>
+    <string name="save">Save</string>
 </resources>

@@ -15,6 +15,7 @@ import android.widget.GridView;
 
 import com.codepath.nytimessearch.Adapters.ArticleArrayAdapter;
 import com.codepath.nytimessearch.Models.Article;
+import com.codepath.nytimessearch.Models.Filters;
 import com.codepath.nytimessearch.R;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -30,6 +31,9 @@ import cz.msebera.android.httpclient.Header;
 
 public class SearchActivity extends AppCompatActivity {
 
+    //This is the request code of the filters
+    private final int REQUEST_CODE = 20;
+
     private final String NYTAPIVersion = "v2";
     private final String NYTAPIKey = "eb47f252eb564d7ca79b4c60c6f7319d";
     private final String TAG = "SearchActivity";
@@ -42,6 +46,10 @@ public class SearchActivity extends AppCompatActivity {
 
     ArrayList<Article> articles;
     ArticleArrayAdapter adapter;
+
+    boolean useFilter;
+    Filters filter;
+    String query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +83,20 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onActivityResult(int request_code, int result_code, Intent data) {
+        //We got new value for an item
+        if (result_code == RESULT_OK && request_code == REQUEST_CODE){
+            Filters filter = (Filters) data.getSerializableExtra("filter");
+            Log.d(TAG, "here");
+        }
+        else{
+            Log.d(TAG,"REQUEST CODE or/and RESULT CODE not good: REQUEST_CODE=" + REQUEST_CODE + "RESULT_OK =" + RESULT_OK);
+        }
+
+
+    }
+
+        @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
@@ -89,7 +111,14 @@ public class SearchActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_filter) {
+            Log.d(TAG, "action filter clicked");
+
+            //todo startActivityForResult
+            Intent intent= new Intent(this, FiltersActivity.class);
+//            startActivity(intent);
+            startActivityForResult(intent, REQUEST_CODE);
+
             return true;
         }
 
@@ -102,8 +131,9 @@ public class SearchActivity extends AppCompatActivity {
         Log.d(TAG, "url without param: " + url);
         return url;
     }
+
     public void onArticleSearch(View view) {
-        String query = etQuery.getText().toString();
+        query = etQuery.getText().toString();
 
         AsyncHttpClient client = new AsyncHttpClient();
         String url = getURL();
@@ -137,5 +167,10 @@ public class SearchActivity extends AppCompatActivity {
                 Log.d(TAG, errorResponse.toString());
             }
         });
+    }
+
+    private void makeQuery(){
+
+
     }
 }
