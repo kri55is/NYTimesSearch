@@ -168,49 +168,6 @@ public class SearchActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-//    public String buildURL(){
-//        //https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=eb47f252eb564d7ca79b4c60c6f7319d
-//        String url = "http://api.nytimes.com/svc/search/"+ NYTAPIVersion + "/articlesearch.json";
-//        Log.d(TAG, "url without param: " + url);
-//        return url;
-//    }
-//
-//    private RequestParams buildParamRequest(){
-//        RequestParams requestParams = new RequestParams();
-//        requestParams.put("api-key", NYTAPIKey);
-//        requestParams.put("page", resultsPage);
-//        if(!query.isEmpty()) {
-//            requestParams.put("q", query);
-//        }
-//        Log.d(TAG, "PARAMS: " + "api-key=" + NYTAPIKey+ ", page=" + resultsPage + ", q=" + query);
-//
-//        if (this.useFilter){
-//            String beginDate = filter.getBeginDateYearAsString() + filter.getBeginDateMonthAsString() + filter.getBeginDateDayAsString();
-//            requestParams.put("begin_date", beginDate);
-//            if (filter.isSortingOldest()){
-//                requestParams.put("sort", "oldest");
-//            }
-//            else{
-//                requestParams.put("sort", "newest");
-//            }
-//
-//            int numDeskValues =filter.getNewsDeskValues().size();
-//            if (numDeskValues > 0) {
-//                String paramNewsDesk = "news_desk:(";
-//                for (int i = 0; i < numDeskValues; i++) {
-//                    if (i > 0){
-//                        paramNewsDesk += "%20";
-//                    }
-//                    paramNewsDesk += "\""+ filter.getNewsDeskValues().get(i) + "\"";
-//                }
-//                paramNewsDesk += ")";
-//                requestParams.put("fq",paramNewsDesk);
-//            }
-//
-//        }
-//
-//        return requestParams;
-//    }
 
     public void onArticleSearch(View view) {
         query = etQuery.getText().toString();
@@ -240,12 +197,8 @@ public class SearchActivity extends AppCompatActivity {
 
                 try {
                     articlesJSONResults = response.getJSONObject("response").getJSONArray("docs");
-//                    articles.clear();
                     articles.addAll(Article.fromJSONArray(articlesJSONResults));
                     displayQuery();
-//                    adapter.clear();
-//                    adapter.addAll(articles);
-//                    Log.d(TAG, adapter.toString());
                 }
                 catch (JSONException e){
                     e.printStackTrace();
