@@ -6,6 +6,7 @@
         android:id="@+id/action_filter"
         android:orderInCategory="100"
         android:title="@string/filters"
-        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_filter_list"
+        app:showAsAction="ifRoom|withText"
         />
 </menu>
