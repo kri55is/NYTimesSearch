@@ -45,7 +45,8 @@ public class FiltersActivity extends AppCompatActivity {
     public void onClickSave(View view) {
 
         int year = dpStaringDate.getYear();
-        int month = dpStaringDate.getMonth();
+        //getMonth returns 0 for january!?
+        int month = dpStaringDate.getMonth() + 1;
         int day = dpStaringDate.getDayOfMonth();
 
         boolean sortOldest = false;

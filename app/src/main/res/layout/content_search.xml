@@ -41,6 +41,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/etQuery"
-        android:numColumns="4" />
+        android:numColumns="2" />
 
 </RelativeLayout>
