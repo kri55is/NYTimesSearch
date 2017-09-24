@@ -31,9 +31,20 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     private ArrayList<Article> mArticles;
     private Context mContext;
 
+    private Picasso picasso;
+    private Picasso.Builder builder;
+
     public ArticleAdapter(Context context, ArrayList<Article> articles){
         mArticles = articles;
         mContext = context;
+        builder = new Picasso.Builder(getContext());
+        builder.listener(new Picasso.Listener() {
+            @Override
+            public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
+                exception.printStackTrace();
+            }});
+        picasso = builder.build();
+
     }
 
     private Context getContext(){
@@ -60,14 +71,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
 
         String thumbnail = article.getThumbNail();
 
-        Picasso.Builder builder = new Picasso.Builder(getContext());
-        builder.listener(new Picasso.Listener() {
-            @Override
-            public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
-                exception.printStackTrace();
-            }});
 
-        Picasso picasso = builder.build();
+
 
         if(!TextUtils.isEmpty(thumbnail)){
             Log.d(TAG, "ThumbNail to display is= " +  thumbnail);

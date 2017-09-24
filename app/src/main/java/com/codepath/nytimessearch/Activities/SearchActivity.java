@@ -72,7 +72,7 @@ public class SearchActivity extends AppCompatActivity {
         articleAdapter = new ArticleAdapter(this, articles);
 
         rvArticles.setAdapter(articleAdapter);
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rvArticles.setLayoutManager(layoutManager);
 
         endlessScrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
