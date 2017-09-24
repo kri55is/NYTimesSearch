@@ -45,8 +45,9 @@ The following **additional** features are implemented:
 ## Video Walkthrough
 
 Here's a walkthrough of implemented user stories:
-https://drive.google.com/file/d/0B6Ikny_DfttCWnY3MzdfZ2l6ZjA/view?usp=sharing
-<img src='https://drive.google.com/file/d/0B6Ikny_DfttCWnY3MzdfZ2l6ZjA/view?usp=sharing' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='https://imgur.com/a/rQ5ai' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+![Video walkthrough](https://i.imgur.com/emdBWY9.gif)
+
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
