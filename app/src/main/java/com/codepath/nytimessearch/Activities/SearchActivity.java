@@ -3,20 +3,20 @@ package com.codepath.nytimessearch.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.Toast;
 
-import com.codepath.nytimessearch.Adapters.ArticleArrayAdapter;
+import com.codepath.nytimessearch.Adapters.ArticleAdapter;
 import com.codepath.nytimessearch.Models.Article;
 import com.codepath.nytimessearch.Models.Filters;
 import com.codepath.nytimessearch.Models.QueryBuilder;
@@ -42,24 +42,22 @@ public class SearchActivity extends AppCompatActivity {
 
     private int resultsPage= 0;
 
-    public EditText etQuery;
-    public GridView gvResults;
-    public Button btnSearch;
+    private RecyclerView rvArticles;
+    private ArticleAdapter articleAdapter;
 
     ArrayList<Article> articles;
-    ArticleArrayAdapter adapter;
 
     boolean useFilter;
     Filters filter;
-    String query = "";
+    String query = "Android";
 
     Handler handler = new Handler();
-    EndlessScrollListener endlessScrollListener;
+    EndlessRecyclerViewScrollListener endlessScrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
+        setContentView(R.layout.activity_search_r);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setupViews();
@@ -68,53 +66,25 @@ public class SearchActivity extends AppCompatActivity {
 
     public void setupViews(){
 
-        this.etQuery = (EditText) findViewById(R.id.etQuery);
-        this.btnSearch = (Button) findViewById(R.id.btnSearch);
-        this.gvResults = (GridView) findViewById(R.id.gvResults);
         articles = new ArrayList<>();
-        adapter = new ArticleArrayAdapter(this, articles);
-        gvResults.setAdapter(adapter);
 
-        gvResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        rvArticles = (RecyclerView) findViewById(R.id.rvArticles);
+        articleAdapter = new ArticleAdapter(this, articles);
+
+        rvArticles.setAdapter(articleAdapter);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        rvArticles.setLayoutManager(layoutManager);
+
+        endlessScrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
-                Article article = articles.get(position);
-                intent.putExtra("article", article);
-
-                startActivity(intent);
-            }
-        });
-
-        endlessScrollListener = new EndlessScrollListener(10,resultsPage) {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 loadNextDataFromApi(page);
-                return true;
             }
         };
-        gvResults.setOnScrollListener(endlessScrollListener);
-    }
+        rvArticles.addOnScrollListener(endlessScrollListener);
 
-    // Create the Handler object (on the main thread by default)
-    // Define the code block to be executed
-    private Runnable makeQueryWithDelay = new Runnable() {
-        @Override
-        public void run() {
-            // Do something here on the main thread
-            makeQuery();
-            Log.d("Handlers", "Called on main thread");
-        }
-    };
-    public void loadNextDataFromApi(int offset) {
-        // Send an API request to retrieve appropriate paginated data
-        resultsPage=offset;
-        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
-
-        handler.postDelayed(makeQueryWithDelay, 3000);
-        //  --> Deserialize and construct new model objects from the API response
-        //  --> Append the new data objects to the existing set of items inside the array of items
-        //  --> Notify the adapter of the new items made with `notifyDataSetChanged()`
+        //to create articles in the list;
+        makeQuery();
     }
 
     @Override
@@ -125,14 +95,11 @@ public class SearchActivity extends AppCompatActivity {
             this.useFilter = true;
             Log.d(TAG, "use filter");
 
-            //launch the query using the filters
-//            if(!query.isEmpty()) {
-                //reset page
-                resultsPage = 0;
-                clearResults();
-                endlessScrollListener.resetState();
-                makeQuery();
-//            }
+            //reset page
+            resultsPage = 0;
+            clearResults();
+            endlessScrollListener.resetState();
+            makeQuery();
         }
         else{
             Log.d(TAG,"REQUEST CODE or/and RESULT CODE not good: REQUEST_CODE=" + REQUEST_CODE + "RESULT_OK =" + RESULT_OK);
@@ -145,8 +112,34 @@ public class SearchActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
-        return true;
-    }
+            MenuItem searchItem = menu.findItem(R.id.action_search);
+            final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    onArticleSearch(query);
+
+                    // workaround to avoid issues with some emulators and keyboard devices firing twice if a keyboard enter is used
+                    // see https://code.google.com/p/android/issues/detail?id=24599
+                    searchView.clearFocus();
+
+                    return true;
+                }
+
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    if (newText.isEmpty())
+                        query = "";
+                    return false;
+                }
+
+
+            });
+
+            return super.onCreateOptionsMenu(menu);
+
+        }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -169,10 +162,31 @@ public class SearchActivity extends AppCompatActivity {
     }
 
 
-    public void onArticleSearch(View view) {
-        query = etQuery.getText().toString();
+    // Create the Handler object (on the main thread by default)
+    // Define the code block to be executed
+    private Runnable makeQueryWithDelay = new Runnable() {
+        @Override
+        public void run() {
+            // Do something here on the main thread
+            makeQuery();
+            Log.d("Handlers", "Called on main thread");
+        }
+    };
+    public void loadNextDataFromApi(int offset) {
+        // Send an API request to retrieve appropriate paginated data
+        resultsPage=offset;
+        //  --> Send the request including an offset value (i.e `page`) as a query parameter.
+
+        handler.postDelayed(makeQueryWithDelay, 3000);
+        //  --> Deserialize and construct new model objects from the API response
+        //  --> Append the new data objects to the existing set of items inside the array of items
+        //  --> Notify the adapter of the new items made with `notifyDataSetChanged()`
+    }
+
+
+    public void onArticleSearch(String query) {
+        this.query = query;
         clearResults();
-        endlessScrollListener.resetState();
         makeQuery();
 
     }
@@ -219,22 +233,26 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void clearResults(){
+        resultsPage = 0;
         articles.clear();
-        adapter.clear();
+        articleAdapter.notifyDataSetChanged();
+        endlessScrollListener.resetState();
     }
 
     private void displayQuery(){
         Log.d(TAG, articles.size() + " articles in arrayList");
         if(articles.size() == 0)
             Toast.makeText(this, "no result found", Toast.LENGTH_SHORT).show();
-        adapter.clear();
-        adapter.addAll(articles);
-        Log.d(TAG, adapter.toString());
+//        adapter.clear();
+//        adapter.addAll(articles);
+        articleAdapter.notifyDataSetChanged();
+
+        Log.d(TAG, articleAdapter.toString());
     }
 
 
-    public abstract class EndlessScrollListener implements AbsListView.OnScrollListener {
-        // The minimum number of items to have below your current scroll position
+    public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener {
+        // The minimum amount of items to have below your current scroll position
         // before loading more.
         private int visibleThreshold = 5;
         // The current offset index of data you have loaded
@@ -246,67 +264,90 @@ public class SearchActivity extends AppCompatActivity {
         // Sets the starting page index
         private int startingPageIndex = 0;
 
-        public EndlessScrollListener() {
+        RecyclerView.LayoutManager mLayoutManager;
+
+        public EndlessRecyclerViewScrollListener(LinearLayoutManager layoutManager) {
+            this.mLayoutManager = layoutManager;
         }
 
-        public EndlessScrollListener(int visibleThreshold) {
-            this.visibleThreshold = visibleThreshold;
+        public EndlessRecyclerViewScrollListener(GridLayoutManager layoutManager) {
+            this.mLayoutManager = layoutManager;
+            visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
         }
 
-        public EndlessScrollListener(int visibleThreshold, int startPage) {
-            this.visibleThreshold = visibleThreshold;
-            this.startingPageIndex = startPage;
-            this.currentPage = startPage;
+        public EndlessRecyclerViewScrollListener(StaggeredGridLayoutManager layoutManager) {
+            this.mLayoutManager = layoutManager;
+            visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
         }
 
-        private void resetState(){
-            // The current offset index of data you have loaded
-           currentPage = 0;
-            // The total number of items in the dataset after the last load
-           previousTotalItemCount = 0;
-            // True if we are still waiting for the last set of data to load.
-           loading = true;
-            // Sets the starting page index
-           startingPageIndex = 0;
-
+        public int getLastVisibleItem(int[] lastVisibleItemPositions) {
+            int maxSize = 0;
+            for (int i = 0; i < lastVisibleItemPositions.length; i++) {
+                if (i == 0) {
+                    maxSize = lastVisibleItemPositions[i];
+                }
+                else if (lastVisibleItemPositions[i] > maxSize) {
+                    maxSize = lastVisibleItemPositions[i];
+                }
+            }
+            return maxSize;
         }
 
+        // This happens many times a second during a scroll, so be wary of the code you place here.
+        // We are given a few useful parameters to help us work out if we need to load some more data,
+        // but first we check if we are waiting for the previous load to finish.
         @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
-        {
+        public void onScrolled(RecyclerView view, int dx, int dy) {
+            int lastVisibleItemPosition = 0;
+            int totalItemCount = mLayoutManager.getItemCount();
+
+            if (mLayoutManager instanceof StaggeredGridLayoutManager) {
+                int[] lastVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findLastVisibleItemPositions(null);
+                // get maximum element within the list
+                lastVisibleItemPosition = getLastVisibleItem(lastVisibleItemPositions);
+            } else if (mLayoutManager instanceof GridLayoutManager) {
+                lastVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+            } else if (mLayoutManager instanceof LinearLayoutManager) {
+                lastVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+            }
+
             // If the total item count is zero and the previous isn't, assume the
             // list is invalidated and should be reset back to initial state
             if (totalItemCount < previousTotalItemCount) {
                 this.currentPage = this.startingPageIndex;
                 this.previousTotalItemCount = totalItemCount;
-                if (totalItemCount == 0) { this.loading = true; }
+                if (totalItemCount == 0) {
+                    this.loading = true;
+                }
             }
-            // If it's still loading, we check to see if the dataset count has
+            // If it’s still loading, we check to see if the dataset count has
             // changed, if so we conclude it has finished loading and update the current page
             // number and total item count.
             if (loading && (totalItemCount > previousTotalItemCount)) {
                 loading = false;
                 previousTotalItemCount = totalItemCount;
-                currentPage++;
             }
 
-            // If it isn't currently loading, we check to see if we have breached
+            // If it isn’t currently loading, we check to see if we have breached
             // the visibleThreshold and need to reload more data.
             // If we do need to reload some more data, we execute onLoadMore to fetch the data.
-            if (!loading && (firstVisibleItem + visibleItemCount + visibleThreshold) >= totalItemCount ) {
-                loading = onLoadMore(currentPage + 1, totalItemCount);
+            // threshold should reflect how many total columns there are too
+            if (!loading && (lastVisibleItemPosition + visibleThreshold) > totalItemCount) {
+                currentPage++;
+                onLoadMore(currentPage, totalItemCount, view);
+                loading = true;
             }
+        }
+
+        // Call this method whenever performing new searches
+        public void resetState() {
+            this.currentPage = this.startingPageIndex;
+            this.previousTotalItemCount = 0;
+            this.loading = true;
         }
 
         // Defines the process for actually loading more data based on page
-        // Returns true if more data is being loaded; returns false if there is no more data to load.
-        public abstract boolean onLoadMore(int page, int totalItemsCount);
-
-        @Override
-        public void onScrollStateChanged(AbsListView view, int scrollState) {
-            // Don't take any action on changed
-        }
-
+        public abstract void onLoadMore(int page, int totalItemsCount, RecyclerView view);
 
     }
 }

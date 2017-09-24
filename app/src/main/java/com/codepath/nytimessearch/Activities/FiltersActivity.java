@@ -66,11 +66,7 @@ public class FiltersActivity extends AppCompatActivity {
 
         Intent intent = new Intent();
         intent.putExtra("filter", filter);
-//        intent.putExtra("year", 198);
         setResult(RESULT_OK, intent);
-//        else{
-//            setResult(RESULT_CANCELED);
-//        }
         finish();
     }
 }
